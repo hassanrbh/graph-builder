@@ -3,6 +3,7 @@ import ReactFlow, {
   applyEdgeChanges,
   applyNodeChanges,
   addEdge,
+  Background,
 } from "react-flow-renderer";
 import { faker } from "@faker-js/faker";
 
@@ -12,14 +13,13 @@ const initialNodes = [];
 function Flow() {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
+  const [nodeId, setNodeId] = useState('');
   const yPos = useRef(0);
   const [openModal, setOpenModal] = useState(false);
   const [openModalForNodes, SetopenModalForNodes] = useState(false);
   const [prevNode, setPrevNode] = useState(false);
-  const rfStyle = {
-    backgroundColor: "#D0C0F7",
-  };
 
+  // React flow controlled node functions 
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes]
@@ -32,17 +32,27 @@ function Flow() {
     (connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges]
   );
-
+    // Get clicked node id
+  const onNodeClick = useCallback(e => {
+    console.log(e.target.getAttribute('data-id'))
+    setNodeId(prevId => {
+      return prevId = e.target.getAttribute('data-id')
+    });
+    console.log(nodeId);
+  }, [setNodeId])
+  
+  // Generate random character ID for Node
   function getRandomUppercaseChar() {
     var r = Math.floor(Math.random() * 26);
-    console.log(String.fromCharCode((65 + r)));
     return String.fromCharCode(65 + r);
   }
 
   const addNode = useCallback((prev) => {
+    yPos.current += 50;
     const node = {
-      id: getRandomUppercaseChar(),
+      id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
       position: { x: 100, y: yPos.current },
+      
       data: {
         label: faker.name.fullName(),
       },
@@ -50,7 +60,6 @@ function Flow() {
         width: 100,
       },
     };
-    yPos.current += 50;
     setNodes((nodes) => {
       return [...nodes, node];
     });
@@ -65,28 +74,25 @@ function Flow() {
             id: `${node.id}-${_prevNode_id}`,
             source: `${node.id}`,
             target: `${_prevNode_id}`,
+            type: 'step',
           },
         ];
       });
     }
+    setOpenModal(false);
   }, []);
 
-  console.log(nodes);
-
   const addCrossroad = useCallback((prev) => {
+    yPos.current += 50;
     const node = [
       {
-        id: getRandomUppercaseChar(),
+        id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
         position: { x: 100, y: yPos.current },
-        data: {
-          label: faker.name.fullName(),
-        },
-        style: {
-          width: 100,
-        },
+        data: { label: faker.name.fullName()},
+        style: { width: 100 },
       },
       {
-        id: getRandomUppercaseChar(),
+        id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
         position: { x: 200, y: yPos.current },
         data: {
           label: faker.name.fullName(),
@@ -96,26 +102,28 @@ function Flow() {
         },
       },
     ]
-    yPos.current += 50;
     setNodes((nodes) => {
       return [...nodes, ...node]
     })
     if (prev) {
-      const _prevNode_id = prev.getAttribute("data-id");
-      console.log(_prevNode_id);
       setEdges((edges) => {
         return [
           ...edges,
           // For connecting edges , 'source' is the current node added and 'target' is the previous node
           {
-            id: `${node.id}-${_prevNode_id}`,
+            id: `${node.id}-${nodeId}`,
             source: `${node.id}`,
-            target: `${_prevNode_id}`,
+            target: `${nodeId}`,
+          },
+          {
+            id: `${node.id}-${nodeId}`,
+            source: `${node.id}`,
+            target: `${nodeId}`,
           },
         ];
       });
     }
-
+    setOpenModal(false);
   }, []);
 
   const TrackNode = (e) => {
@@ -126,36 +134,41 @@ function Flow() {
   };
 
   return (
-    <div style={rfStyle}>
-      {/* if open modal is true open add tool and add crossroad */}
+    <div>
+      <div className="plusIcon" onClick={() => setOpenModal((prev) => !prev)}><span>+</span></div>
+        
       {openModal ? (
         <div className="actionsModal">
-          <button onClick={() => addNode(prevNode)}>Add Tool</button>
-          <button onClick={() => addCrossroad(prevNode)}>Add Crossroad</button>
+          <button className="tool" onClick={() => addNode(prevNode)}>Add Tool</button>
+          <button className="crossroad" onClick={() => addCrossroad(prevNode)}>Add Crossroad</button>
         </div>
       ) : null}
-      {/* Starting point of program */}
-      <div onClick={() => setOpenModal((prev) => !prev)}>+</div>
 
       {openModalForNodes ? (
         <div className="actionsModal">
-          <button onClick={() => addNode(prevNode)}>Add Tool </button>
-          <button onClick={() => addCrossroad(prevNode)}>Add Crossroad</button>
+          <button className="tool" onClick={() => addNode(prevNode)}>Add Tool </button>
+          <button className="crossroad" onClick={() => addCrossroad(prevNode)}>Add Crossroad</button>
         </div>
       ) : null}
 
-      <div style={{ height: "100vh" }}>
+      <div style={{ height: '100vh' }}>
         <ReactFlow
           nodes={nodes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeClick={onNodeClick}
           onConnect={onConnect}
-          onClick={(e) => TrackNode(e)}
+          // onClick={(e) => TrackNode(e)}
           edges={edges}
           fitView
-          attributionPosition="top-right"
-        />
+          defaultZoom={1}
+          minZoom={0.2}
+          maxZoom={4}
+        >
+          <Background />
+          </ReactFlow>
       </div>
+      
     </div>
   );
 }
