@@ -13,13 +13,13 @@ const initialNodes = [];
 function Flow() {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
-  const [nodeId, setNodeId] = useState('');
+  const [nodeId, setNodeId] = useState(undefined);
   const yPos = useRef(0);
   const [openModal, setOpenModal] = useState(false);
   const [openModalForNodes, SetopenModalForNodes] = useState(false);
   const [prevNode, setPrevNode] = useState(false);
 
-  // React flow controlled node functions 
+  // React flow controlled node functions
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes]
@@ -32,14 +32,11 @@ function Flow() {
     (connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges]
   );
-    // Get clicked node id
-  const onNodeClick = e => {
-    console.log(e.target.getAttribute('data-id'))
-    setNodeId(prevId => {
-      return prevId = e.target.getAttribute('data-id')
-    });
-    console.log(nodeId);
-  }
+  // Get clicked node id
+  const onNodeClick = (e) => {
+    const _nodeId_ = e.target.getAttribute("data-id");
+    setNodeId(_nodeId_);
+  };
   
   // Generate random character ID for Node
   function getRandomUppercaseChar() {
@@ -52,7 +49,7 @@ function Flow() {
     const node = {
       id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
       position: { x: 100, y: yPos.current },
-      
+
       data: {
         label: faker.name.fullName(),
       },
@@ -74,7 +71,7 @@ function Flow() {
             id: `${node.id}-${_prevNode_id}`,
             source: `${node.id}`,
             target: `${_prevNode_id}`,
-            type: 'step',
+            type: "step",
           },
         ];
       });
@@ -82,49 +79,58 @@ function Flow() {
     setOpenModal(false);
   }, []);
 
-  const addCrossroad = useCallback((prev) => {
-    yPos.current += 50;
-    const node = [
-      {
-        id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
-        position: { x: 100, y: yPos.current },
-        data: { label: faker.name.fullName()},
-        style: { width: 100 },
-      },
-      {
-        id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
-        position: { x: 200, y: yPos.current },
-        data: {
-          label: faker.name.fullName(),
+  console.log(edges);
+
+  const addCrossroad = useCallback(
+    (prev) => {
+      yPos.current += 50;
+      const node = [
+        {
+          id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
+          position: { x: 100, y: yPos.current },
+          data: { label: faker.name.fullName() },
+          style: { width: 100 },
         },
-        style: {
-          width: 100,
+        {
+          id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
+          position: { x: 200, y: yPos.current },
+          data: {
+            label: faker.name.fullName(),
+          },
+          style: {
+            width: 100,
+          },
         },
-      },
-    ]
-    setNodes((nodes) => {
-      return [...nodes, ...node]
-    })
-    if (prev) {
-      setEdges((edges) => {
-        return [
-          ...edges,
-          // For connecting edges , 'source' is the current node added and 'target' is the previous node
-          {
-            id: `${node.id}-${nodeId}`,
-            source: `${node.id}`,
-            target: `${nodeId}`,
-          },
-          {
-            id: `${node.id}-${nodeId}`,
-            source: `${node.id}`,
-            target: `${nodeId}`,
-          },
-        ];
+      ];
+      setNodes((nodes) => {
+        return [...nodes, ...node];
       });
-    }
-    setOpenModal(false);
-  }, []);
+      if (prev) {
+        setEdges((edges) => {
+          return [
+            ...edges,
+            // For connecting edges , 'source' is the current node added and 'target' is the previous node
+            {
+              id: `${node[0].id}-${nodeId}`,
+              source: `${node[0].id}`,
+              target: `${nodeId}`,
+              type: "step",
+              animated: true,
+            },
+            {
+              id: `${node[1].id}-${nodeId}`,
+              source: `${node[1].id}`,
+              target: `${nodeId}`,
+              type: "step",
+              animated: true,
+            },
+          ];
+        });
+      }
+      setOpenModal(false);
+    },
+    [nodeId]
+  );
 
   const TrackNode = (e) => {
     if (e.target.getAttribute("data-id")) {
@@ -135,23 +141,33 @@ function Flow() {
 
   return (
     <div>
-      <div className="plusIcon" onClick={() => setOpenModal((prev) => !prev)}><span>+</span></div>
-        
+      <div className="plusIcon" onClick={() => setOpenModal((prev) => !prev)}>
+        <span>+</span>
+      </div>
+
       {openModal ? (
         <div className="actionsModal">
-          <button className="tool" onClick={() => addNode(prevNode)}>Add Tool</button>
-          <button className="crossroad" onClick={() => addCrossroad(prevNode)}>Add Crossroad</button>
+          <button className="tool" onClick={() => addNode(prevNode)}>
+            Add Tool
+          </button>
+          <button className="crossroad" onClick={() => addCrossroad(prevNode)}>
+            Add Crossroad
+          </button>
         </div>
       ) : null}
 
       {openModalForNodes ? (
         <div className="actionsModal">
-          <button className="tool" onClick={() => addNode(prevNode)}>Add Tool </button>
-          <button className="crossroad" onClick={() => addCrossroad(prevNode)}>Add Crossroad</button>
+          <button className="tool" onClick={() => addNode(prevNode)}>
+            Add Tool{" "}
+          </button>
+          <button className="crossroad" onClick={() => addCrossroad(prevNode)}>
+            Add Crossroad
+          </button>
         </div>
       ) : null}
 
-      <div style={{ height: '100vh' }}>
+      <div style={{ height: "100vh" }}>
         <ReactFlow
           nodes={nodes}
           onNodesChange={onNodesChange}
@@ -166,9 +182,8 @@ function Flow() {
           maxZoom={4}
         >
           <Background />
-          </ReactFlow>
+        </ReactFlow>
       </div>
-      
     </div>
   );
 }
