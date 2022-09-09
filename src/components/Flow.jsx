@@ -33,13 +33,13 @@ function Flow() {
     [setEdges]
   );
     // Get clicked node id
-  const onNodeClick = useCallback(e => {
+  const onNodeClick = e => {
     console.log(e.target.getAttribute('data-id'))
     setNodeId(prevId => {
       return prevId = e.target.getAttribute('data-id')
     });
     console.log(nodeId);
-  }, [setNodeId])
+  }
   
   // Generate random character ID for Node
   function getRandomUppercaseChar() {
@@ -158,7 +158,7 @@ function Flow() {
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           onConnect={onConnect}
-          // onClick={(e) => TrackNode(e)}
+          onClick={(e) => TrackNode(e)}
           edges={edges}
           fitView
           defaultZoom={1}
