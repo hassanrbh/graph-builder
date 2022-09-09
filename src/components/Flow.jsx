@@ -37,6 +37,7 @@ function Flow() {
     const _nodeId_ = e.target.getAttribute("data-id");
     setNodeId(_nodeId_);
   };
+  
   // Generate random character ID for Node
   function getRandomUppercaseChar() {
     var r = Math.floor(Math.random() * 26);
