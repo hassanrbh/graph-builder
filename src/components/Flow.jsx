@@ -35,6 +35,7 @@ function Flow() {
 
   function getRandomUppercaseChar() {
     var r = Math.floor(Math.random() * 26);
+    console.log(String.fromCharCode((65 + r)));
     return String.fromCharCode(65 + r);
   }
 
@@ -59,6 +60,7 @@ function Flow() {
       setEdges((edges) => {
         return [
           ...edges,
+          // For connecting edges , 'source' is the current node added and 'target' is the previous node
           {
             id: `${node.id}-${_prevNode_id}`,
             source: `${node.id}`,
@@ -71,9 +73,50 @@ function Flow() {
 
   console.log(nodes);
 
-  const addCrossroad = () => {
-    console.log("crossroad");
-  };
+  const addCrossroad = useCallback((prev) => {
+    const node = [
+      {
+        id: getRandomUppercaseChar(),
+        position: { x: 100, y: yPos.current },
+        data: {
+          label: faker.name.fullName(),
+        },
+        style: {
+          width: 100,
+        },
+      },
+      {
+        id: getRandomUppercaseChar(),
+        position: { x: 200, y: yPos.current },
+        data: {
+          label: faker.name.fullName(),
+        },
+        style: {
+          width: 100,
+        },
+      },
+    ]
+    yPos.current += 50;
+    setNodes((nodes) => {
+      return [...nodes, ...node]
+    })
+    if (prev) {
+      const _prevNode_id = prev.getAttribute("data-id");
+      console.log(_prevNode_id);
+      setEdges((edges) => {
+        return [
+          ...edges,
+          // For connecting edges , 'source' is the current node added and 'target' is the previous node
+          {
+            id: `${node.id}-${_prevNode_id}`,
+            source: `${node.id}`,
+            target: `${_prevNode_id}`,
+          },
+        ];
+      });
+    }
+
+  }, []);
 
   const TrackNode = (e) => {
     if (e.target.getAttribute("data-id")) {
@@ -84,19 +127,20 @@ function Flow() {
 
   return (
     <div style={rfStyle}>
+      {/* if open modal is true open add tool and add crossroad */}
       {openModal ? (
-        <>
+        <div className="actionsModal">
           <button onClick={() => addNode(prevNode)}>Add Tool</button>
-          <button onClick={addCrossroad}>Add Crossroad</button>
-        </>
+          <button onClick={() => addCrossroad(prevNode)}>Add Crossroad</button>
+        </div>
       ) : null}
-
+      {/* Starting point of program */}
       <div onClick={() => setOpenModal((prev) => !prev)}>+</div>
 
       {openModalForNodes ? (
-        <div>
+        <div className="actionsModal">
           <button onClick={() => addNode(prevNode)}>Add Tool </button>
-          <button onClick={addCrossroad}>Add Crossroad</button>
+          <button onClick={() => addCrossroad(prevNode)}>Add Crossroad</button>
         </div>
       ) : null}
 
