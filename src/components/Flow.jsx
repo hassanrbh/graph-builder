@@ -32,7 +32,7 @@ function Flow() {
     (connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges]
   );
-  // Get clicked node id
+  // Get clicked node ids
   const onNodeClick = (e) => {
     const _nodeId_ = e.target.getAttribute("data-id");
     setNodeId(_nodeId_);
