@@ -13,7 +13,7 @@ const initialNodes = [];
 function Flow() {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
-  const [nodeId, setNodeId] = useState('');
+  const [nodeId, setNodeId] = useState(undefined);
   const yPos = useRef(0);
   const [openModal, setOpenModal] = useState(false);
   const [openModalForNodes, SetopenModalForNodes] = useState(false);
@@ -33,24 +33,24 @@ function Flow() {
     [setEdges]
   );
     // Get clicked node id
-  const onNodeClick = e => {
-    console.log(e.target.getAttribute('data-id'))
-    setNodeId(prevId => {
-      return prevId = e.target.getAttribute('data-id')
-    });
-    console.log(nodeId);
-  }
+    const onNodeClick = (e) => {
+      console.dir(e.target);
+      const _nodeId_ =
+       e.target.getAttribute("data-id");
+      setNodeId(_nodeId_);
+      
+    };
   
   // Generate random character ID for Node
   function getRandomUppercaseChar() {
     var r = Math.floor(Math.random() * 26);
     return String.fromCharCode(65 + r);
   }
-
+  // Add 1 node
   const addNode = useCallback((prev) => {
     yPos.current += 50;
     const node = {
-      id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
+      id: `${getRandomUppercaseChar()}`,
       position: { x: 100, y: yPos.current },
       
       data: {
@@ -82,17 +82,20 @@ function Flow() {
     setOpenModal(false);
   }, []);
 
+  // console.log(edges);
+
+  // Add 2 nodes 
   const addCrossroad = useCallback((prev) => {
     yPos.current += 50;
     const node = [
       {
-        id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
+        id: `${getRandomUppercaseChar()}`,
         position: { x: 100, y: yPos.current },
         data: { label: faker.name.fullName()},
         style: { width: 100 },
       },
       {
-        id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
+        id: `${getRandomUppercaseChar()}`,
         position: { x: 200, y: yPos.current },
         data: {
           label: faker.name.fullName(),
@@ -107,19 +110,39 @@ function Flow() {
     })
     if (prev) {
       setEdges((edges) => {
+        console.log(nodeId, 'nodeid')
+        console.log(node[1].id)
         return [
           ...edges,
           // For connecting edges , 'source' is the current node added and 'target' is the previous node
           {
-            id: `${node.id}-${nodeId}`,
-            source: `${node.id}`,
+            id: `${node[0].id}-${nodeId}`,
+            source: `${node[0].id}`,
             target: `${nodeId}`,
+            type: "step",
+            animated: true,
           },
           {
-            id: `${node.id}-${nodeId}`,
-            source: `${node.id}`,
+            id: `${node[1].id}-${nodeId}`,
+            source: `${node[1].id}`,
             target: `${nodeId}`,
+            type: "step",
+            animated: true,
           },
+          // {
+          //   id: `${node[0].id}-${nodeId}`,
+          //   source: `${node[0].id}`,
+          //   target: `${nodeId}`,
+          //   type: "step",
+          //   animated: true,
+          // },
+          // {
+          //   id: `${node[1].id}-${nodeId}`,
+          //   source: `${node[1].id}`,
+          //   target: `${nodeId}`,
+          //   type: "step",
+          //   animated: true,
+          // },
         ];
       });
     }
@@ -128,7 +151,7 @@ function Flow() {
 
   const TrackNode = (e) => {
     if (e.target.getAttribute("data-id")) {
-      setPrevNode(e.target);
+      setPrevNode(e.target); 
       SetopenModalForNodes((prev) => !prev);
     }
   };
