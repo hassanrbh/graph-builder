@@ -14,6 +14,7 @@ function Flow() {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
   const [nodeId, setNodeId] = useState(undefined);
+  const [ nodePos , setNodePos ] = useState({});
   const yPos = useRef(0);
   const [openModal, setOpenModal] = useState(false);
   const [openModalForNodes, SetopenModalForNodes] = useState(false);
@@ -21,9 +22,17 @@ function Flow() {
 
   // React flow controlled node functions
   const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    (changes) => {
+      // setNodePos({ x: changes[0]?.position?.x, y:changes[0]?.position?.y});
+      // setNodePos(changes[0]?.position);
+      setNodes((nds) => applyNodeChanges(changes, nds))
+    },
     [setNodes]
   );
+  const onNodeDragStop = (_, node) => {
+    // console.log(node);
+    setNodePos(node.position)
+  }
   const onEdgesChange = useCallback(
     (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     [setEdges]
@@ -43,12 +52,23 @@ function Flow() {
     var r = Math.floor(Math.random() * 26);
     return String.fromCharCode(65 + r);
   }
+
+  console.log(nodePos);
+
   // Add 1 node
   const addNode = useCallback((prev) => {
     yPos.current += 50;
+
+    console.log(-Math.abs(nodePos.x),  -Math.abs(nodePos.y), nodePos.x, nodePos.y, 'node posiition here');
     const node = {
       id: `${getRandomUppercaseChar()}`,
-      position: { x: 100, y: yPos.current },
+      position: {
+        x: -Math.abs(nodePos.x),
+        y: -Math.abs(nodePos.y)
+      } && {
+        x: 100,
+        y: yPos.current
+      },
 
       data: {
         label: faker.name.fullName(),
@@ -79,10 +99,9 @@ function Flow() {
     setOpenModal(false);
   }, []);
 
-  console.log(edges);
-
   const addCrossroad = useCallback(
     (prev) => {
+      console.log(prev);
       yPos.current += 50;
       const node = [
         {
@@ -172,6 +191,7 @@ function Flow() {
           nodes={nodes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeDragStop={onNodeDragStop}
           onNodeClick={onNodeClick}
           onConnect={onConnect}
           onClick={(e) => TrackNode(e)}
