@@ -1,11 +1,16 @@
 import { useState, useCallback, useRef } from "react";
 import ReactFlow, {
+  ReactFlowProvider,
   applyEdgeChanges,
   applyNodeChanges,
   addEdge,
   Background,
+  useStoreApi,
 } from "react-flow-renderer";
 import { faker } from "@faker-js/faker";
+import Sidebar from "./Sidebar";
+
+import AddNode from "./AddNode";
 
 const initialEdges = [];
 const initialNodes = [];
@@ -20,7 +25,11 @@ function Flow() {
   const [openModalForNodes, SetopenModalForNodes] = useState(false);
   const [prevNode, setPrevNode] = useState(false);
 
-  // React flow controlled node functions
+  const store = useStoreApi();
+  
+  console.log(store.getState())
+
+  // Controlled component react node functions
   const onNodesChange = useCallback(
     (changes) => {
       // setNodePos({ x: changes[0]?.position?.x, y:changes[0]?.position?.y});
@@ -29,9 +38,11 @@ function Flow() {
     },
     [setNodes]
   );
+
+  // Get node position on drag end ( when dropping node )
   const onNodeDragStop = (_, node) => {
     // console.log(node);
-    setNodePos(node.position)
+    setNodePos(node.position);
   }
   const onEdgesChange = useCallback(
     (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
@@ -71,7 +82,7 @@ function Flow() {
       },
 
       data: {
-        label: faker.name.fullName(),
+        label: <AddNode />,
       },
       style: {
         width: 100,
@@ -106,13 +117,13 @@ function Flow() {
       const node = [
         {
           id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
-          position: { x: 100, y: yPos.current },
+          position: { x: 50, y: yPos.current },
           data: { label: faker.name.fullName() },
           style: { width: 100 },
         },
         {
           id: `${getRandomUppercaseChar()}-${getRandomUppercaseChar()}`,
-          position: { x: 200, y: yPos.current },
+          position: { x: 150, y: yPos.current },
           data: {
             label: faker.name.fullName(),
           },
@@ -151,6 +162,7 @@ function Flow() {
     [nodeId]
   );
 
+  // Track node 
   const TrackNode = (e) => {
     if (e.target.getAttribute("data-id")) {
       setPrevNode(e.target); 
@@ -160,11 +172,11 @@ function Flow() {
 
   return (
     <div>
-      <div className="plusIcon" onClick={() => setOpenModal((prev) => !prev)}>
+      {!nodes.length ? <div className="plusIcon" onClick={() => setOpenModal((prev) => !prev)}>
         <span>+</span>
-      </div>
+      </div> : null}
 
-      {openModal ? (
+      {openModal && !nodes?.length ? (
         <div className="actionsModal">
           <button className="tool" onClick={() => addNode(prevNode)}>
             Add Tool
@@ -187,22 +199,23 @@ function Flow() {
       ) : null}
 
       <div style={{ height: "100vh" }}>
-        <ReactFlow
-          nodes={nodes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeDragStop={onNodeDragStop}
-          onNodeClick={onNodeClick}
-          onConnect={onConnect}
-          onClick={(e) => TrackNode(e)}
-          edges={edges}
-          fitView
-          defaultZoom={1}
-          minZoom={0.2}
-          maxZoom={4}
-        >
-          <Background />
-        </ReactFlow>
+        <ReactFlowProvider>
+        <Sidebar />
+          <ReactFlow
+            nodes={nodes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeDragStop={onNodeDragStop}
+            onNodeClick={onNodeClick}
+            onConnect={onConnect}
+            onClick={(e) => TrackNode(e)}
+            edges={edges}
+            fitView
+            >
+            <Background />
+          </ReactFlow>
+          
+        </ReactFlowProvider>
       </div>
     </div>
   );
